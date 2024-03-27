@@ -1,0 +1,116 @@
+
+READ ME:
+
+Here we will go through the project file by file.
+
+
+
+
+
+PairTrading.h
+
+We will start defining this header file because it does not need any other file for its performance. It defines classes, such as:
+	
+- TradeData: Save common daily financial information (only one day).
+	
+- Stock: It has a symbol and a vector of TradeData.
+
+- PairPrice: It is just a Struct with the important information to calculate the PnL of our strategy in one day for one pair of stocks.
+	
+- StockPairPrices: It has the capacity to store all the information of a pair. It saves the symbols, the volatility, the threshold, and a map with all the PairPrices struct for each day.
+
+
+
+
+
+
+MarketData.hpp and MarketData.cpp
+
+It has 3 main functions and 1 Class:
+
+- PullMarketData: It downloads the data from the EOD website
+
+- PopulateDailyTrades: It parses the information from the EOD website and saves it into Stocks classes
+
+- (Class) CSVReader: This class with its member function getData is able to read CSV files and return it as a vector of a vector of strings.
+
+- PopulatePairNamesCSV: This function calls the csv file and populates a map of StockPairPrices objects with only the names of the stock for each pair.
+
+
+
+
+
+
+Database.hpp and Database.cpp
+
+This files have functions that handles the database, such as:
+
+- OpenDatabase: It just opens the database, and creates it if it does not exist.
+
+- CreateStockPairs: Creates the table StockPais.
+
+- CreateHistoricTables: Creates the tables PairOnePrices and PairTwoPrices.
+
+- CreatePairPrices: Creates the table PairPrices.
+
+- InsertStockPairs: Inserting values into table StockPairs.
+
+- InsertHistoricTables: Inserting values into tables PairOnePrices and PairTwoPrices.
+
+- InsertPairPrices: Inserting values into table PairPrices
+
+- DisplayTables: It is not used yet in the program but it displays a table from the database.
+
+- CloseDatabase: It closes the database.
+
+
+
+
+
+
+Calculations.hpp and Calculations.cpp
+
+It has 3 main functions that make calculation using the database and the map of StockPairPrices objects which is passed by reference all the time.
+
+- CalculateVolatility: First it calculate the variance of a pair using a BackTestStartDate date to set the last date available for the calculation (we want to test our strategy without using that data). This calculation is made in SQL for simplicity. The value modified is in table StockPairs and the data used to calculated is in table PairPrices. Then we call this variance value into c++, convert it into volatility, insert the volatility into the map of StockPairPrices (which so far only had the names of the stocks in each pair), and fix the StockPairs (because it was variance and we want volatility).
+
+- CalculateBackTest: So far the map of StockPairPrices only has the names and volatility for each pair. So we iterate through those pairs, call the data necessary to generate our pair trading strategy, calculate profit and loss for all the dates (including in-sample and out-of-sample), populate the StockPairPrices object with maps of PairPrice  objects with their dates, and update the Profit and Loss column in the PairPrices table.
+
+- CalculateEachPnL: After recording all the profits and loss of every day, in-sample and out-of-sample, we would like to know how our strategy did out-of-sample. So this function calculates the sum of all the out-of-sample PnLs, insert them into the map of StockPairPrices, and update the table StockPairs.
+
+
+
+
+
+
+
+Main.cpp:
+
+Finally, this is the menu of our application. If the database has not populated yet (or want to created from scratch), the process is the following:
+
+- Type "A" to create the StockPairs table and populate it with the CSV stocks names.
+
+- Type "B" to download the data from EOD website and insert it into PairOnePrices and PairTwoPrices tables.
+
+- Type "C" to create PairPrices table and populate it.
+
+- Type "D" to calculate volatility, insert those values into the map of StockPairPrices objects and update the volatility values in the table StockPairs.
+
+- Type "E" to calculate the back test and populate the map of StockPairPrices objects with all the daily prices, and profits and losses.
+
+- Type "F" to calculate the final out-of-sample PnL.
+
+
+If the database is already loaded, we only need to populate the map of StockPairPrices objects. So we do the following process:
+
+- Type "A"
+- Type "D"
+- Type "E"
+- Type "F"
+
+
+
+
+
+
+
